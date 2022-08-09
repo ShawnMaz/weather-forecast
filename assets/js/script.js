@@ -3,60 +3,9 @@ var weatherIcon;
 
 var searchFormEl = document.querySelector("#search-form");
 var displayAreaEl = document.querySelector("#display-area");
-
-var cityInfo = {
-  nameOfCity: "",
-  longitude: "",
-  latitude: "",
-};
-var dailyForecast = {
-  date: "",
-  weatherIcon: "",
-  temperature: "",
-  windSpeed: "",
-  humidity: "",
-  uvIndex: "",
-  uvIndexColour: "",
-};
-var weeklyForecast = [];
+var searchResultsEl = document.querySelector("#search-results");
 
 var listOfCities = [];
-
-// UV index colour code: https://www.epa.gov/sunsafety/uv-index-scale-0
-
-// var apiUrlDailyForecast = `https://api.openweathermap.org/data/2.5/onecall?lat=${lattitude}&lon=${longitude}&appid=${apiKey}&units=metric`;
-
-// fetch(apiUrlDailyForecast).then(function (response) {
-//   if (response.ok) {
-//     response.json().then(function (data) {
-//       console.log(data);
-//     });
-//   } else {
-//     alert("Unable to get data form the server");
-//   }
-// });
-
-// var apiUrlFiveDayForecast = `https://api.openweathermap.org/data/2.5/forecast?lat=${lattitude}&lon=${longitude}&appid=${apiKey}&units=metric`;
-
-// fetch(apiUrlFiveDayForecast).then(function (response) {
-//   if (response.ok) {
-//     response.json().then(function (data) {
-//       console.log(data);
-//     });
-//   }
-// });
-
-// var apiUrlWeatherIcon = `https://openweathermap.org/img/w/${weatherIcon}.png`;
-
-// var apiUrlGeocoding = `http://api.openweathermap.org/geo/1.0/direct?q=${cityName}&limit=${numberOfCities}&appid=${apiKey}`;
-
-// fetch(apiUrlGeocoding).then(function (response) {
-//   if (response.ok) {
-//     response.json().then(function (data) {
-//       console.log(data);
-//     });
-//   }
-// });
 
 var getUvColourCode = function (uvIndex) {
   var colour;
@@ -87,7 +36,7 @@ var getUvColourCode = function (uvIndex) {
   return colour;
 };
 
-var showData = function () {
+var showData = function (cityInfo, dailyForecast, weeklyForecast) {
   displayAreaEl.innerHTML = `
         <div class="card-body border border-dark rounded my-3">
             <h2 class="card-title">${cityInfo.nameOfCity} - ${dailyForecast.date} <img src="https://openweathermap.org/img/w/${dailyForecast.weatherIcon}.png"></h2>
@@ -120,14 +69,47 @@ var showData = function () {
     }
     fiveDayForecastCardSectionEl.appendChild(fiveDayForcastCard);
     displayAreaEl.appendChild(fiveDayForecastCardSectionEl);
+    weeklyForecast = []; // empty out 5 day forecast
 };
 
 var convertToKph = function (mps) {
   return (mps * (1 / 1000) * 3600).toFixed(2);
 };
 
+var showSearchResults = function(){ 
+  searchResultsEl.innerHTML = "";
+
+  if(listOfCities.length > 0){
+    for (var i = listOfCities.length - 1; i >= 0; i--){
+      var buttonEl = document.createElement("button");
+      buttonEl.classList = "btn btn-secondary mb-3";
+      buttonEl.setAttribute("data-city-name", listOfCities[i].nameOfCity);
+      buttonEl.textContent = `${listOfCities[i].nameOfCity}`;
+      searchResultsEl.appendChild(buttonEl);
+    }
+  }  
+};
+
+var readSearchResults = function(){
+  listOfCities = JSON.parse(localStorage.getItem("searchHistory")) || [];
+};
+
+var updateSearchResults = function(cityInfo){
+  for(var i = 0; i < listOfCities.length; i++){
+    if (listOfCities[i].nameOfCity === cityInfo.nameOfCity){
+      listOfCities.splice(i,1);
+    }
+  }  
+  listOfCities.push(cityInfo);
+  if(listOfCities.length > 10){
+    listOfCities.shift();
+  }
+  localStorage.setItem("searchHistory", JSON.stringify(listOfCities));
+};
+
 var fetchApi = function (cityName) {
-  var apiUrlGeocoding = `http://api.openweathermap.org/geo/1.0/direct?q=${cityInfo.nameOfCity}&limit=1&appid=${apiKey}`;
+  var cityInfo = {};
+  var apiUrlGeocoding = `http://api.openweathermap.org/geo/1.0/direct?q=${cityName}&limit=1&appid=${apiKey}`;
   fetch(apiUrlGeocoding).then(function (response) {
     if (response.ok) {
       response.json().then(function (data) {
@@ -137,6 +119,7 @@ var fetchApi = function (cityName) {
           cityInfo.longitude = data[0].lon;
 
           var apiUrlDailyForecast = `https://api.openweathermap.org/data/2.5/onecall?lat=${cityInfo.latitude}&lon=${cityInfo.longitude}&appid=${apiKey}&units=metric`;
+          var dailyForecast = {};
           fetch(apiUrlDailyForecast).then(function (response) {
             if (response.ok) {
               response.json().then(function (data) {
@@ -155,6 +138,7 @@ var fetchApi = function (cityName) {
                 );
 
                 var apiUrlFiveDayForecast = `https://api.openweathermap.org/data/2.5/forecast?lat=${cityInfo.latitude}&lon=${cityInfo.longitude}&appid=${apiKey}&units=metric`;
+                var weeklyForecast = [];
                 fetch(apiUrlFiveDayForecast).then(function (response) {
                   if (response.ok) {
                     response.json().then(function (data) {
@@ -170,9 +154,11 @@ var fetchApi = function (cityName) {
                           data.list[i].wind.speed
                         )} KPH`;
                         futureForecast.humidity = `${data.list[i].main.humidity}%`;
-                        weeklyForecast.unshift(futureForecast);
+                        weeklyForecast.unshift(futureForecast);                        
                       }
-                      showData();
+                      showData(cityInfo, dailyForecast, weeklyForecast);
+                      updateSearchResults(cityInfo);
+                      showSearchResults();
                     });
                   } else {
                     alert("Error. Unable to get the 5 day forecast.");
@@ -195,6 +181,9 @@ var fetchApi = function (cityName) {
   });
 };
 
+readSearchResults();
+showSearchResults();
+
 var runWeatherDashboard = function (event) {
   event.preventDefault();
 
@@ -203,11 +192,21 @@ var runWeatherDashboard = function (event) {
   if (!cityName) {
     alert("Invalid city name entered");
     return false;
-  }
-  cityInfo.nameOfCity = cityName.toLowerCase();
-  displayAreaEl.innerHTML = "";
-  fetchApi();
-  weeklyForecast = [];
+  }  
+  displayAreaEl.innerHTML = "<h2>Loading...</h2>";
+  fetchApi(cityName.toLowerCase());  
 };
 
 searchFormEl.addEventListener("submit", runWeatherDashboard);
+
+var searchHistoryButtonHandler = function(event){
+  if(event.target.matches(".btn")){
+    var cityName = event.target.getAttribute("data-city-name");
+  }
+  if(cityName){
+    displayAreaEl.innerHTML = "<h2>Loading...</h2>";
+    fetchApi(cityName);
+  }  
+};
+
+searchResultsEl.addEventListener("click", searchHistoryButtonHandler)
