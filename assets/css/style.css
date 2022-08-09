@@ -1,0 +1,28 @@
+.bg-custom {
+    padding: 3px;
+    border-radius: 2px;
+    color: white;
+}
+
+.green{
+    background-color: green;
+}
+
+.yellow{
+    background-color: #E6E600;
+    color: black;
+}
+
+.orange{
+    background-color: orange;
+    color: black;
+}
+
+.red{
+    background-color: red;
+    color: black;
+}
+
+.purple{
+    background-color: purple;
+}
