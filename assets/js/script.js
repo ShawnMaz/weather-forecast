@@ -36,7 +36,9 @@ var getUvColourCode = function (uvIndex) {
   return colour;
 };
 
+// Displays the data from API calls on the webpage
 var showData = function (cityInfo, dailyForecast, weeklyForecast) {
+  // Shows current weather data
   displayAreaEl.innerHTML = `
         <div class="card-body border border-dark rounded my-3">
             <h2 class="card-title">${cityInfo.nameOfCity} - ${dailyForecast.date} <img src="https://openweathermap.org/img/w/${dailyForecast.weatherIcon}.png"></h2>
@@ -47,6 +49,7 @@ var showData = function (cityInfo, dailyForecast, weeklyForecast) {
         </div> 
     `;
 
+    // Shows 5 day forecast data
     var fiveDayForecastCardSectionEl = document.createElement("section");
     fiveDayForecastCardSectionEl.classList = "d-flex flex-column";
     var h3El = document.createElement("h3");
@@ -72,10 +75,12 @@ var showData = function (cityInfo, dailyForecast, weeklyForecast) {
     weeklyForecast = []; // empty out 5 day forecast
 };
 
+// Converts wind speed from meters per seconds to kilemeters per hour
 var convertToKph = function (mps) {
   return (mps * (1 / 1000) * 3600).toFixed(2);
 };
 
+// Shows the search result history on the page
 var showSearchResults = function(){ 
   searchResultsEl.innerHTML = "";
 
@@ -90,10 +95,12 @@ var showSearchResults = function(){
   }  
 };
 
+// Reads the search history stored in the local storage
 var readSearchResults = function(){
   listOfCities = JSON.parse(localStorage.getItem("searchHistory")) || [];
 };
 
+// Updates the list of cities in the program and then stores it in the local storage
 var updateSearchResults = function(cityInfo){
   for(var i = 0; i < listOfCities.length; i++){
     if (listOfCities[i].nameOfCity === cityInfo.nameOfCity){
@@ -107,8 +114,10 @@ var updateSearchResults = function(cityInfo){
   localStorage.setItem("searchHistory", JSON.stringify(listOfCities));
 };
 
+// Makes all the calls to the right API and then parses the data to display on the page
 var fetchApi = function (cityName) {
   var cityInfo = {};
+  // Gets the lattitude and longitude of the city name provided by the user
   var apiUrlGeocoding = `https://api.openweathermap.org/geo/1.0/direct?q=${cityName}&limit=1&appid=${apiKey}`;
   fetch(apiUrlGeocoding).then(function (response) {
     if (response.ok) {
@@ -118,6 +127,7 @@ var fetchApi = function (cityName) {
           cityInfo.latitude = data[0].lat;
           cityInfo.longitude = data[0].lon;
 
+          // Gets the current weather data for the city name provided by the user
           var apiUrlDailyForecast = `https://api.openweathermap.org/data/2.5/onecall?lat=${cityInfo.latitude}&lon=${cityInfo.longitude}&appid=${apiKey}&units=metric`;
           var dailyForecast = {};
           fetch(apiUrlDailyForecast).then(function (response) {
@@ -137,6 +147,7 @@ var fetchApi = function (cityName) {
                   Math.floor(data.current.uvi)
                 );
 
+                // Gets the 5 day forcast for the city name provided by the user
                 var apiUrlFiveDayForecast = `https://api.openweathermap.org/data/2.5/forecast?lat=${cityInfo.latitude}&lon=${cityInfo.longitude}&appid=${apiKey}&units=metric`;
                 var weeklyForecast = [];
                 fetch(apiUrlFiveDayForecast).then(function (response) {
@@ -184,6 +195,7 @@ var fetchApi = function (cityName) {
 readSearchResults();
 showSearchResults();
 
+// Get the city name from the search filed and makes the function call to get data from the APIs
 var runWeatherDashboard = function (event) {
   event.preventDefault();
 
@@ -199,6 +211,7 @@ var runWeatherDashboard = function (event) {
 
 searchFormEl.addEventListener("submit", runWeatherDashboard);
 
+// Gets the name of the button from the search history and calls the function to get data from the APIs
 var searchHistoryButtonHandler = function(event){
   if(event.target.matches(".btn")){
     var cityName = event.target.getAttribute("data-city-name");
