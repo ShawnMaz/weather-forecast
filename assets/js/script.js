@@ -109,7 +109,7 @@ var updateSearchResults = function(cityInfo){
 
 var fetchApi = function (cityName) {
   var cityInfo = {};
-  var apiUrlGeocoding = `http://api.openweathermap.org/geo/1.0/direct?q=${cityName}&limit=1&appid=${apiKey}`;
+  var apiUrlGeocoding = `https://api.openweathermap.org/geo/1.0/direct?q=${cityName}&limit=1&appid=${apiKey}`;
   fetch(apiUrlGeocoding).then(function (response) {
     if (response.ok) {
       response.json().then(function (data) {
