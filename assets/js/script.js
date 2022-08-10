@@ -54,11 +54,11 @@ var showData = function (cityInfo, dailyForecast, weeklyForecast) {
     fiveDayForecastCardSectionEl.appendChild(h3El);
 
     var fiveDayForcastCard = document.createElement("div");
-    fiveDayForcastCard.classList = "d-flex justify-content-between";
+    fiveDayForcastCard.classList = "d-flex justify-content-between flex-wrap";
 
     for (var i = 0; i < weeklyForecast.length; i++){
         fiveDayForcastCard.innerHTML += `
-        <div class="card-body bg-info rounded text-white col-2">
+        <div class="card-body bg-info rounded text-white col-md-2 mb-3">
             <h6 class="card-title">${weeklyForecast[i].date}</h6>
             <img src="https://openweathermap.org/img/w/${weeklyForecast[i].weatherIcon}.png">
             <p class="card-text">Temp: ${weeklyForecast[i].temerature}</p>
