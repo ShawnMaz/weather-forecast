@@ -172,21 +172,25 @@ var fetchApi = function (cityName) {
                       showSearchResults();
                     });
                   } else {
+                    displayAreaEl.innerHTML ="";
                     alert("Error. Unable to get the 5 day forecast.");
                   }
                 });
               });
             } else {
+              displayAreaEl.innerHTML ="";
               alert(`Error. Unable to get daily forecast from the server.`);
             }
           });
         } else {
+          displayAreaEl.innerHTML ="";
           alert(
             `Error. Unable to find city with the name ${cityInfo.nameOfCity}.`
           );
         }
       });
     } else {
+      displayAreaEl.innerHTML ="";
       alert(`Error. Unable to find city with the name ${cityInfo.nameOfCity}.`);
     }
   });
